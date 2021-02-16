@@ -27,7 +27,7 @@ exports.register = (req, res, next) => {
       } else {
         const tempToken = jwt.sign(
           { userID: data[0][0][0].userID },
-          "daswand",
+          "daswands",
           {
             expiresIn: "1h",
           }
