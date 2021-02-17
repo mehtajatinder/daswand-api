@@ -21,7 +21,7 @@ exports.register = (req, res, next) => {
     .then((data) => {
       if (data[0][0][0].userID == 0) {
         res.status(400).json({
-          token: tempToken,
+          // token: tempToken,
           message: data[0][0][0].message,
         });
       } else {
@@ -40,6 +40,7 @@ exports.register = (req, res, next) => {
     })
     .catch((err) => {
       console.log(1);
+      console.log(err);
     });
 
   // db.execute("call registerUser(?,?,?,?)", [
@@ -79,14 +80,24 @@ exports.register = (req, res, next) => {
 exports.login = (req, res, next) => {
   db.execute("call loginUser(?,?)", [req.body.username, req.body.password])
     .then((data) => {
-      console.log(data);
-      res.status(200).json({
-        message: "user logged in",
-      });
+      if (data[0][0][0].userID == 0) {
+        // bcrypt.compare(req.body.password,).then
+        res.status(400).json({
+          // token: tempToken,
+          message: "inavlid username password.",
+          data: data
+        });
+      } else {
+        res.status(200).json({
+          //data:data,
+          message: "user logged in.",
+        });
+      }
+      
     })
     .catch((error) => {
       res.status(500).json({
-        message: "invalid username password. tattti",
+        message: "invalid username password",
       });
     });
 };
