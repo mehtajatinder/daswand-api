@@ -1,11 +1,12 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = (req, res, next) => {
-  const authHeader = req.get("auth");
+  const authHeader = req.get("token");
   if (!authHeader) {
     const err = new Error("not authenticated");
-    err.ststuscode = 401;
-    throw error;
+    err.statuscode = 401;
+    // throw err;
+    return res.status(401).json(err);
   }
 
   const token = req.get("token");
@@ -13,14 +14,17 @@ module.exports = (req, res, next) => {
   try {
     decodedToken = jwt.verify(token, "daswands");
   } catch (err) {
-    err.ststuscode = 500;
-    throw error;
+    err.message = "jwt expired";
+    err.statuscode = 401;
+    // throw err;
+    return res.status(401).json(err);
   }
 
   if (!decodedToken) {
     const err = new Error("not authenticated");
-    err.ststuscode = 500;
-    throw error;
+    err.statuscode = 401;
+    // throw err;
+    return res.status(401).json(err);
   }
   req.userID = decodedToken.userID;
   next();

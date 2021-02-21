@@ -8,7 +8,8 @@ const dbPool = dbConnection.createPool({
   host:'localhost',
   user:'root',
   database:'dasvand',
-  password: '@#dl9cau1183',
+  password: 'fragile',
+  //password: '@#dl9cau1183',
 
 });
 
