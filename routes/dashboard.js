@@ -5,6 +5,6 @@ const isAuth = require("../util/auth");
 
 const router = express.Router();
 
-router.get("/dashboard", isAuth, dashboardController.getDashboardData);
+router.post("/dashboard", isAuth, dashboardController.getDashboardData);
 
 module.exports = { router: router };
