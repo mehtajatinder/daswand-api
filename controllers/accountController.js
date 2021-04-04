@@ -1,35 +1,58 @@
-const db = require("../util/database");
+const getDb = require("../util/database").getDb;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const User = require('../models/user')
 
 exports.register = (req, res, next) => {
   const firstname = req.body.firstname;
   const lastname = req.body.lastname;
   const email = req.body.email;
   const password = req.body.password;
-
+  const db = getDb();
+  let user
   bcrypt
     .hash(password, 12)
     .then((hashpwd) => {
-      return db.execute("call registerUser(?,?,?,?)", [
-        firstname,
-        lastname,
-        email,
-        hashpwd,
-      ]);
+      // return db.execute("call registerUser(?,?,?,?)", [
+      //   firstname,
+      //   lastname,
+      //   email,
+      //   hashpwd,
+      // ]);
+      user = new User(firstname, lastname, email, hashpwd, hashpwd)
+
+      // return {
+      //   promise: db.collection('users').findOne({
+      //     $or: [{ emailID: user.emailID }]
+      //   }), user: user
+      // }
+      return db.collection('users').findOne({
+        $or: [{ emailID: user.emailID }]
+      })
     })
     .then((data) => {
-      if (data[0][0][0].userID == 0) {
+      if (data == undefined) {
+        return db.collection('users').insertOne(user)
+      }
+      else {
+        const error = new Error("user exists");
+        error.statusCode = 400;
+        throw error;
+      }
+    })
+    .then((data) => {
+      if (data == undefined || data.insertedCount == 0) {
         const error = new Error("user not created");
         error.statusCode = 400;
         throw error;
       } else {
         res.status(200).json({
-          message: data[0][0][0].message,
+          message: "user created",
         });
       }
     })
     .catch((error) => {
+      console.log(error)
       if (!error.statusCode) {
         error.statusCode = 500;
         error.message = "error occured.";
@@ -41,18 +64,25 @@ exports.register = (req, res, next) => {
 };
 
 exports.login = (req, res, next) => {
+  // db.execute("call loginUser(?)", [req.body.username])
+  const username = req.body.username
   const password = req.body.password;
-  db.execute("call loginUser(?)", [req.body.username])
+
+  const db = getDb()
+
+  db.collection('users').findOne({
+    $or: [{ emailID: username }]
+  })
     .then((data) => {
-      if (data[0][0][0].userID == 0) {
+      if (data == undefined || data.emailID != username) {
         const error = new Error("user does not exists");
         error.statusCode = 400;
         throw error;
       } else {
-        data.userID = data[0][0][0].userID;
+        data.userID = data._id;
         data.bcryptResult = bcrypt.compareSync(
           password,
-          data[0][0][0].userPassword
+          data.password
         );
         return data;
       }
